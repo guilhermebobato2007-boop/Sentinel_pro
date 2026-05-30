@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Telemetria IoT Sentinel Pro</title>
+  <meta name="description" content="Dashboard Industrial de Telemetria IoT — Sentinel Pro" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <div class="logo-text">
+          <span class="logo-title">SENTINEL</span>
+          <span class="logo-sub">PRO v2.4</span>
+        </div>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Recolher menu">‹</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-label">NAVEGAÇÃO</span>
+      <a href="#" class="nav-item active" data-section="dashboard">
+        <span class="nav-icon">◈</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-section="sensores">
+        <span class="nav-icon">◉</span>
+        <span class="nav-text">Sensores</span>
+      </a>
+      <a href="#" class="nav-item" data-section="graficos">
+        <span class="nav-icon">◫</span>
+        <span class="nav-text">Gráficos</span>
+      </a>
+      <span class="nav-label">SISTEMA</span>
+      <a href="#" class="nav-item" id="themeToggleNav">
+        <span class="nav-icon" id="themeIcon">☽</span>
+        <span class="nav-text" id="themeLabel">Modo Claro</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-status">
+      <div class="status-dot online"></div>
+      <span>Sistema Online</span>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="main-content" id="mainContent">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Dashboard de Telemetria</h1>
+        <p class="page-subtitle">Monitoramento Industrial em Tempo Real</p>
+      </div>
+      <div class="topbar-right">
+        <div class="system-clock" id="systemClock">--:--:--</div>
+        <div class="alert-badge" id="alertBadge" style="display:none">
+          <span class="alert-dot"></span>
+          <span id="alertCount">0</span> alertas críticos
+        </div>
+      </div>
+    </header>
+
+    <!-- STATISTICS PANEL -->
+    <section class="stats-panel" id="statsPanel">
+      <div class="stat-card" id="statTemp">
+        <div class="stat-icon temp">🌡️</div>
+        <div class="stat-body">
+          <span class="stat-label">Média Temperatura</span>
+          <span class="stat-value" id="avgTemp">—</span>
+          <span class="stat-unit">°C</span>
+        </div>
+        <div class="stat-bar"><div class="stat-fill temp-fill" id="tempBar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card" id="statPres">
+        <div class="stat-icon pres">⚙️</div>
+        <div class="stat-body">
+          <span class="stat-label">Média Pressão</span>
+          <span class="stat-value" id="avgPres">—</span>
+          <span class="stat-unit">kPa</span>
+        </div>
+        <div class="stat-bar"><div class="stat-fill pres-fill" id="presBar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card" id="statUmi">
+        <div class="stat-icon umi">💧</div>
+        <div class="stat-body">
+          <span class="stat-label">Média Umidade</span>
+          <span class="stat-value" id="avgUmi">—</span>
+          <span class="stat-unit">%</span>
+        </div>
+        <div class="stat-bar"><div class="stat-fill umi-fill" id="umiBar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card total-card">
+        <div class="stat-icon total">◈</div>
+        <div class="stat-body">
+          <span class="stat-label">Total de Sensores</span>
+          <span class="stat-value" id="totalSensores">0</span>
+          <span class="stat-unit">unid.</span>
+        </div>
+        <div class="stat-bar"><div class="stat-fill total-fill" id="totalBar" style="width:100%"></div></div>
+      </div>
+      <div class="stat-card critical-card">
+        <div class="stat-icon crit">⚠</div>
+        <div class="stat-body">
+          <span class="stat-label">Sensores Críticos</span>
+          <span class="stat-value" id="totalCriticos">0</span>
+          <span class="stat-unit">alertas</span>
+        </div>
+        <div class="stat-bar"><div class="stat-fill crit-fill" id="critBar" style="width:0%"></div></div>
+      </div>
+    </section>
+
+    <!-- FORM + ACTIONS -->
+    <section class="form-section">
+      <div class="form-card">
+        <div class="form-card-header">
+          <span class="form-card-icon">+</span>
+          <h2>Adicionar Sensor</h2>
+        </div>
+        <form id="sensorForm" novalidate>
+          <div class="form-row">
+            <div class="field-group">
+              <label for="nomeSensor">Nome do Sensor</label>
+              <input
+                type="text"
+                id="nomeSensor"
+                placeholder="Ex: Termopar Tipo K — Forno 01"
+                autocomplete="off"
+              />
+              <span class="field-hint" id="hintNome"></span>
+            </div>
+            <div class="field-group">
+              <label for="tipoSensor">Tipo do Sensor</label>
+              <select id="tipoSensor">
+                <option value="">— Selecionar tipo —</option>
+                <option value="Temperatura">🌡️ Temperatura</option>
+                <option value="Pressão">⚙️ Pressão</option>
+                <option value="Umidade">💧 Umidade</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="valorSensor">Valor Medido</label>
+              <input
+                type="number"
+                id="valorSensor"
+                placeholder="0"
+                step="0.1"
+              />
+              <span class="field-hint" id="hintValor"></span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btnAdicionar">
+              <span>+ Adicionar Sensor</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnTesteData">
+              ⬇ Carregar Dados de Teste
+            </button>
+            <button type="button" class="btn btn-danger" id="btnLimpar">
+              ✕ Limpar Todos
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- SENSOR GRID -->
+    <section class="sensor-section">
+      <div class="section-header">
+        <h2>Sensores Monitorados</h2>
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="todos">Todos</button>
+          <button class="filter-tab" data-filter="Temperatura">🌡️ Temperatura</button>
+          <button class="filter-tab" data-filter="Pressão">⚙️ Pressão</button>
+          <button class="filter-tab" data-filter="Umidade">💧 Umidade</button>
+          <button class="filter-tab" data-filter="CRÍTICO">⚠ Críticos</button>
+        </div>
+      </div>
+
+      <div class="sensor-grid" id="sensorGrid">
+        <!-- Cards rendered by JS -->
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">◈</div>
+        <p>Nenhum sensor cadastrado</p>
+        <small>Adicione sensores usando o formulário acima ou carregue os dados de teste.</small>
+      </div>
+    </section>
+
+    <!-- CHART SECTION -->
+    <section class="chart-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>Médias Operacionais da Planta</h2>
+          <span class="chart-badge">Atualização em tempo real</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="operacoesChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="dashboard-footer">
+      <span>Sistema de Telemetria IoT <strong>Sentinel Pro</strong></span>
+      <span>Todos os direitos reservados © 2025</span>
+    </footer>
+
+  </main>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
